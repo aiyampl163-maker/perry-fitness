@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>培力12周改造打卡App</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--ink:#182033;--sub:#657084;--line:#e8edf5;--blue:#2563eb;--green:#16a34a;--orange:#f59e0b;--red:#ef4444;--purple:#7c3aed;}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;color:var(--ink)}
+header{position:sticky;top:0;z-index:3;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);padding:14px 16px;border-bottom:1px solid var(--line)}
+h1{font-size:20px;margin:0} .small{font-size:12px;color:var(--sub);line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding:14px 14px 90px}
+.tabs{display:flex;gap:8px;overflow:auto;padding:10px 0}
+.tab{border:1px solid var(--line);background:white;border-radius:999px;padding:9px 13px;white-space:nowrap;font-weight:700;color:var(--sub)}
+.tab.active{background:var(--ink);color:white}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:12px 0;box-shadow:0 8px 24px rgba(24,32,51,.05)}
+h2{font-size:18px;margin:0 0 10px} h3{font-size:15px;margin:12px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:680px){.grid{grid-template-columns:1fr}}
+.row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+input[type=checkbox]{width:22px;height:22px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:15px;background:white}
+textarea{min-height:76px}
+.btn{border:0;border-radius:12px;padding:11px 13px;font-weight:800;background:var(--blue);color:white}
+.btn.gray{background:#e5e7eb;color:#111827}.btn.red{background:var(--red)}
+.badge{display:inline-block;border-radius:999px;padding:3px 8px;font-size:12px;font-weight:800;background:#eef2ff;color:#3730a3}
+.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.kpi div{background:#f8fafc;border-radius:14px;padding:10px;text-align:center}.kpi b{display:block;font-size:18px}
+.progress{height:10px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar{height:100%;width:0;background:var(--green)}
+.exercise{display:grid;grid-template-columns:28px 1fr 70px 70px 70px;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.exercise:last-child{border-bottom:0}.exname{font-weight:800}.hint{color:var(--sub);font-size:12px}
+.footer{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;justify-content:center}
+.footer button{max-width:220px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<header>
+<h1>培力12周改造打卡App</h1>
+<div class="small">目标：降体脂｜蜂腰大胸｜XO腿改善｜大小脸/高低肩体态修正。数据保存在本机浏览器。</div>
+</header>
+
+<div class="wrap">
+<div class="tabs">
+<button class="tab active" onclick="showTab('today',this)">今日打卡</button>
+<button class="tab" onclick="showTab('week',this)">周计划</button>
+<button class="tab" onclick="showTab('body',this)">身体数据</button>
+<button class="tab" onclick="showTab('food',this)">饮食计划</button>
+<button class="tab" onclick="showTab('review',this)">复盘</button>
+</div>
+
+<section id="today">
+<div class="card">
+<h2>今日训练</h2>
+<div class="grid">
+<div><label class="small">选择今天</label><select id="daySelect" onchange="renderToday()"></select></div>
+<div><label class="small">训练日期</label><input id="dateInput" type="date" onchange="saveDate()"></div>
+</div>
+<div style="margin:12px 0"><div class="progress"><div id="todayBar" class="bar"></div></div><div class="small" id="todayPct"></div></div>
+<div id="exerciseList"></div>
+<h3>今日状态</h3>
+<div class="grid">
+<input id="energy" placeholder="精神状态1-10" onchange="saveMisc()">
+<input id="sleep" placeholder="睡眠小时" onchange="saveMisc()">
+</div>
+<textarea id="note" placeholder="身体感觉：心悸/低血糖/酸痛/动作感受..." onchange="saveMisc()"></textarea>
+</div>
+</section>
+
+<section id="week" class="hidden">
+<div class="card">
+<h2>一周计划</h2>
+<div class="small">建议每周4天必练，状态好可加第5-6天。若出现胸痛、明显心悸、头晕，停止训练并优先恢复。</div>
+<div id="weekPlan"></div>
+</div>
+</section>
+
+<section id="body" class="hidden">
+<div class="card">
+<h2>身体数据记录</h2>
+<div class="grid">
+<input id="bw" placeholder="体重 kg">
+<input id="bf" placeholder="体脂 %">
+<input id="waist" placeholder="腰围 cm">
+<input id="chest" placeholder="胸围 cm">
+<input id="hip" placeholder="臀围 cm">
+<input id="rhr" placeholder="晨起心率">
+</div>
+<button class="btn" onclick="addBody()">保存今天数据</button>
+</div>
+<div class="card">
+<h2>历史记录</h2>
+<div id="bodyLog" class="small"></div>
+</div>
+</section>
+
+<section id="food" class="hidden">
+<div class="card">
+<h2>每日饮食计划</h2>
+<div class="row"><input type="checkbox" class="foodcheck" data-k="breakfast" onchange="saveFood()"><div><b>早餐</b><div class="small">香蕉1根 + 鸡蛋2个 + 无糖豆乳/酸奶</div></div></div>
+<div class="row"><input type="checkbox" class="foodcheck" data-k="lunch" onchange="saveFood()"><div><b>午餐</b><div class="small">米饭200g + 鸡胸150g + 西兰花100g + 牛油果50g</div></div></div>
+<div class="row"><input type="checkbox" class="foodcheck" data-k="preworkout" onchange="saveFood()"><div><b>训练前17:30</b><div class="small">香蕉1根或饭团1个。防低血糖，必须吃。</div></div></div>
+<div class="row"><input type="checkbox" class="foodcheck" data-k="post" onchange="saveFood()"><div><b>训练后</b><div class="small">蛋白粉20-30g；若训练强度高，加米饭/面包/水果。</div></div></div>
+<div class="row"><input type="checkbox" class="foodcheck" data-k="dinner" onchange="saveFood()"><div><b>晚餐</b><div class="small">米饭150g + 鸡胸200g + 蔬菜100g。休息日米饭可减半。</div></div></div>
+</div>
+<div class="card">
+<h2>高血脂友好原则</h2>
+<div class="small">优先：鱼、鸡胸、鸡蛋、豆制品、燕麦、牛油果、坚果少量。减少：黄油、奶油、油炸、肥牛、加工肉。不要极端低碳。</div>
+</div>
+</section>
+
+<section id="review" class="hidden">
+<div class="card">
+<h2>本周复盘</h2>
+<div class="kpi">
+<div><b id="kTrain">0</b><span class="small">训练完成</span></div>
+<div><b id="kFood">0%</b><span class="small">饮食打卡</span></div>
+<div><b id="kBody">0</b><span class="small">身体记录</span></div>
+<div><b id="kWeek">1</b><span class="small">当前周</span></div>
+</div>
+<h3>给教练的周报模板</h3>
+<textarea id="weeklyText" readonly></textarea>
+<button class="btn gray" onclick="makeWeekly()">生成周报</button>
+</div>
+</section>
+</div>
+
+<div class="footer">
+<button class="btn gray" onclick="exportData()">导出数据</button>
+<button class="btn red" onclick="resetAll()">清空</button>
+</div>
+
+<script>
+const plan = {
+"周一 胸+三头":[
+["推胸","4×8-10","90秒"],["上斜推胸","4×10","90秒"],["夹胸","3×15","60秒"],["绳索下压","3×12","60秒"],["面拉","3×15","60秒"]
+],
+"周二 臀+腿后侧":[
+["臀推","4×10","90-120秒"],["RDL硬拉","4×10","90秒"],["保加利亚分腿蹲","3×8/边","90秒"],["臀外展","4×15","60秒"],["怪兽走","3×20步","45秒"]
+],
+"周三 体态矫正":[
+["Chin Tuck收下巴","10×10秒","短休"],["门框胸椎打开","30秒×3","短休"],["Y-T-W肩胛训练","3×12","60秒"],["蚌式开合","3×20/边","45秒"],["舌顶上腭","全天","-"]
+],
+"周四 背+核心":[
+["高位下拉","4×10","90秒"],["坐姿划船","4×10","90秒"],["面拉","3×15","60秒"],["平板支撑","3×45秒","60秒"],["死虫","3×15","45秒"]
+],
+"周五 胸肩+臀中肌":[
+["哑铃飞鸟","3×15","60秒"],["坐姿推胸","3×12","75秒"],["侧平举","3×15","60秒"],["臀桥","3×20","60秒"],["后踢腿","3×15/边","45秒"],["臀外展","3×20","60秒"]
+],
+"周六 有氧+体态":[
+["坡度走","30分钟 坡度8-10 速度5.5","-"],["Chin Tuck","10×10秒","短休"],["胸椎旋转","左右15次","短休"],["拉背伸展","30秒×3","短休"]
+],
+"周日 休息":[
+["散步","6000-10000步","-"],["轻拉伸","10分钟","-"],["周复盘","记录围度/照片","-"]
+]
+};
+const days=Object.keys(plan);
+const today=new Date().toISOString().slice(0,10);
+const store=()=>JSON.parse(localStorage.getItem("perryFit")||"{}");
+const setStore=o=>localStorage.setItem("perryFit",JSON.stringify(o));
+function init(){
+document.getElementById("dateInput").value=today;
+document.getElementById("daySelect").innerHTML=days.map(d=>`<option>${d}</option>`).join("");
+renderToday();renderWeek();loadFood();renderBody();makeWeekly();
+}
+function key(){return document.getElementById("dateInput").value+"_"+document.getElementById("daySelect").value}
+function showTab(id,btn){document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));document.getElementById(id).classList.remove("hidden");document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active"); if(id==="review") makeWeekly();}
+function saveDate(){renderToday();loadFood();}
+function renderToday(){
+let d=document.getElementById("daySelect").value, data=store(), k=key(), rec=data[k]||{};
+let html=plan[d].map((e,i)=>`<div class="exercise">
+<input type="checkbox" ${rec["c"+i]?"checked":""} onchange="saveExercise(${i})">
+<div><div class="exname">${e[0]}</div><div class="hint">${e[1]}｜间隔 ${e[2]}</div></div>
+<input placeholder="kg" value="${rec["w"+i]||""}" onchange="saveField(${i},'w',this.value)">
+<input placeholder="组" value="${rec["s"+i]||""}" onchange="saveField(${i},'s',this.value)">
+<input placeholder="次" value="${rec["r"+i]||""}" onchange="saveField(${i},'r',this.value)">
+</div>`).join("");
+document.getElementById("exerciseList").innerHTML=html;
+document.getElementById("energy").value=rec.energy||"";document.getElementById("sleep").value=rec.sleep||"";document.getElementById("note").value=rec.note||"";
+updatePct();
+}
+function saveExercise(i){let data=store(),k=key();data[k]=data[k]||{};data[k]["c"+i]=event.target.checked;setStore(data);updatePct();}
+function saveField(i,t,v){let data=store(),k=key();data[k]=data[k]||{};data[k][t+i]=v;setStore(data);}
+function saveMisc(){let data=store(),k=key();data[k]=data[k]||{};["energy","sleep","note"].forEach(id=>data[k][id]=document.getElementById(id).value);setStore(data);}
+function updatePct(){let d=document.getElementById("daySelect").value,data=store(),rec=data[key()]||{},n=plan[d].length,done=0;for(let i=0;i<n;i++)if(rec["c"+i])done++;let pct=Math.round(done/n*100);document.getElementById("todayBar").style.width=pct+"%";document.getElementById("todayPct").innerText=`完成 ${done}/${n}｜${pct}%`;}
+function renderWeek(){document.getElementById("weekPlan").innerHTML=days.map(d=>`<div class="card"><h3>${d}</h3><div class="small">${plan[d].map(e=>`✓ ${e[0]}：${e[1]}｜${e[2]}`).join("<br>")}</div></div>`).join("");}
+function foodKey(){return "food_"+document.getElementById("dateInput").value}
+function saveFood(){let data=store(),fk=foodKey();data[fk]={};document.querySelectorAll(".foodcheck").forEach(c=>data[fk][c.dataset.k]=c.checked);setStore(data);}
+function loadFood(){let rec=(store()[foodKey()]||{});document.querySelectorAll(".foodcheck").forEach(c=>c.checked=!!rec[c.dataset.k]);}
+function addBody(){let data=store();data.body=data.body||[];data.body.unshift({date:today,bw:bw.value,bf:bf.value,waist:waist.value,chest:chest.value,hip:hip.value,rhr:rhr.value});setStore(data);["bw","bf","waist","chest","hip","rhr"].forEach(id=>document.getElementById(id).value="");renderBody();}
+function renderBody(){let arr=(store().body||[]);document.getElementById("bodyLog").innerHTML=arr.length?arr.map(x=>`${x.date}｜体重${x.bw}kg｜体脂${x.bf}%｜腰${x.waist}｜胸${x.chest}｜臀${x.hip}｜心率${x.rhr}`).join("<br>"):"暂无记录";}
+function makeWeekly(){let data=store(), train=0;Object.keys(data).forEach(k=>{if(k.includes("_周")){let rec=data[k]; if(Object.keys(rec).some(x=>x[0]==="c"&&rec[x])) train++;}});
+let foods=Object.keys(data).filter(k=>k.startsWith("food_"));let fDone=0,fTotal=foods.length*5;foods.forEach(k=>Object.values(data[k]).forEach(v=>{if(v)fDone++}));
+document.getElementById("kTrain").innerText=train;document.getElementById("kFood").innerText=fTotal?Math.round(fDone/fTotal*100)+"%":"0%";document.getElementById("kBody").innerText=(data.body||[]).length;
+document.getElementById("weeklyText").value=`本周训练完成：${train}次\n饮食打卡率：${fTotal?Math.round(fDone/fTotal*100):0}%\n身体记录次数：${(data.body||[]).length}\n本周状态：\n下周目标：`;
+}
+function exportData(){let blob=new Blob([JSON.stringify(store(),null,2)],{type:"application/json"});let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="perry_fitness_data.json";a.click();}
+function resetAll(){if(confirm("确定清空所有记录？")){localStorage.removeItem("perryFit");location.reload();}}
+init();
+</script>
+</body>
+</html>
